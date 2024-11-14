@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Question-Answer-Validation Bot</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Question-Answer Bot</h2>
+        <!-- Dropdown Topic -->
+        <select id="topic">
+            <option value="Select Topic">--Select topic--</option>
+            <option value="Geography">Geography</option>
+            <option value="Health">Health</option>
+            <option value="Sports">Sports</option>
+        </select>
+        
+        <button onclick="generateQuestion()">Generate Question</button>
+        
+        <div id="question"></div>
+        
+        <input type="text" id="answer" placeholder="Type your answer here">
+
+        <button id="submitAnswer">Submit Answer</button>
+
+        <div id="feedback" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Generate Question 
+        async function generateQuestion() {
+            const topic = document.getElementById('topic').value;
+            const response = await fetch('/generate_question', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topic })
+            });
+            const data = await response.json();
+            document.getElementById('question').innerText = "Question: " + data.question;
+        }
+
+        document.getElementById('submitAnswer').addEventListener('click', validateAnswer);
+
+        // Validate Answer
+        async function validateAnswer() {
+            const question = document.getElementById('question').innerText.replace("Question: ", "");
+            const userAnswer = document.getElementById('answer').value;
+
+            const response = await fetch('/validate_answer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question, user_answer: userAnswer })
+            });
+
+            const data = await response.json();
+            const feedbackElement = document.getElementById('feedback');
+    
+            //Display Feedback
+            feedbackElement.style.display = 'block';
+            feedbackElement.innerText = "Feedback:  " + data.feedback;
+
+            feedbackElement.classList.remove('correct', 'incorrect');
+
+            if (data.feedback.toLowerCase().includes('correct')) {
+                feedbackElement.classList.add('correct');
+                // feedbackElement.classList.remove('incorrect');
+            } else {
+                feedbackElement.classList.add('incorrect');
+                // feedbackElement.classList.remove('correct');
+            }
+        }
+    </script>
+</body>
+</html>
